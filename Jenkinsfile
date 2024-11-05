@@ -1,59 +1,107 @@
 pipeline {
     agent any
+}
 
-    tools {
-        nodejs 'NodeJS' // Reference to NodeJS installation
+environment {
+    PROJECT_DIR = "C:\\Users\\Dell-Lap\\Downloads\\react-hello-world-app-master\\react-hello-world-app-master"
+    TOMCAT_DIR = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps"
+    APP_NAME = "hello-world-app"
+}
+
+stages {
+    stage('Checkout SCM') {
+        steps {
+            git credentialsId: 'muthu512', url: 'https://github.com/muthu512/tomcat.git', branch: 'master'
+        }
     }
 
-    environment {
-        TOMCAT_PATH = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT"
+    stage('Check Node and npm Versions') {
+        steps {
+            script {
+                // Check if Node.js and npm are installed
+                bat 'node -v || exit 1'
+                bat 'npm -v || exit 1'
+            }
+        }
     }
 
-    stages {
-        stage('Clone Repository') {
-            steps {
-                script {
-                    echo 'Cloning repository...'
-                    git credentialsId: 'muthu512', url: 'https://github.com/muthu512/tomcat.git'
+    stage('Check Environment Variables') {
+        steps {
+            script {
+                bat 'echo %PATH%'
+            }
+        }
+    }
+
+    stage('Prepare Project') {
+        steps {
+            script {
+                dir(PROJECT_DIR) {
+                    bat 'if exist "package.json" (echo package.json exists) else (echo package.json not found && exit 1)'
                 }
             }
         }
-        stage('Install Dependencies') {
-            steps {
-                script {
-                    echo 'Installing dependencies...'
+    }
+
+    stage('Install Dependencies') {
+        steps {
+            script {
+                dir(PROJECT_DIR) {
                     bat 'npm install'
                 }
             }
         }
-        stage('Build React App') {
-            steps {
-                script {
-                    echo 'Building React app...'
-                    bat 'npm run build'
-                }
-            }
-        }
-        stage('Deploy to Tomcat') {
-            steps {
-                script {
-                    echo "Deploying to Tomcat at ${TOMCAT_PATH}..."
-                    // Clean existing files in ROOT directory
-                    bat "del /Q ${TOMCAT_PATH}\\*"
+    }
 
-                    // Copy new build files to Tomcat's ROOT directory
-                    bat "xcopy /S /I /Y build\\* ${TOMCAT_PATH}\\"
+    stage('Optimized Build React App') {
+        steps {
+            script {
+                dir(PROJECT_DIR) {
+                    try {
+                        bat 'npm run build || exit 1'
+                    } catch (Exception e) {
+                        echo "Build failed: ${e.message}"
+                        currentBuild.result = 'FAILED'
+                    }
                 }
             }
         }
     }
 
-    post {
-        success {
-            echo 'Deployment successful!'
+    stage('Deploy to Tomcat') {
+        steps {
+            script {
+                // Check if the build folder exists and contains files
+                bat "if not exist \"${PROJECT_DIR}\\build\" (echo Build directory does not exist && exit 1)"
+                bat "dir \"${PROJECT_DIR}\\build\""
+
+                // If the build directory exists but is empty, display an error and exit
+                bat "if not exist \"${PROJECT_DIR}\\build\\*\" (echo No files in build directory && exit 1)"
+
+                // Create the application directory if it does not exist
+                bat "if not exist \"${TOMCAT_DIR}\\${APP_NAME}\" mkdir \"${TOMCAT_DIR}\\${APP_NAME}\""
+
+                // Copy files from build directory to Tomcat
+                bat "xcopy /S /I /Y \"${PROJECT_DIR}\\build\\*\" \"${TOMCAT_DIR}\\${APP_NAME}\\\""
+
+                // Verify deployment by listing files in the Tomcat app directory
+                bat "dir \"${TOMCAT_DIR}\\${APP_NAME}\""
+            }
         }
-        failure {
-            echo 'Deployment failed.'
-        }
+    }
+}
+
+post {
+    always {
+        echo 'This will always run after the pipeline finishes'
+    }
+    success {
+        echo 'Pipeline succeeded!'
+    }
+    failure {
+        echo 'Pipeline failed!'
+    }
+    unstable {
+        echo 'Pipeline unstable!'
     }
 }
