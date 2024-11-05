@@ -36,7 +36,9 @@ pipeline {
                     echo 'Deploying to Tomcat...'
                     def tomcatPath = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT'
                     
+                    // Clear the Tomcat webapps ROOT directory
                     bat "del /Q ${tomcatPath}\\*"
+                    // Copy the built files to the Tomcat ROOT directory
                     bat "xcopy /S /I /Y build\\* ${tomcatPath}"
                 }
             }
