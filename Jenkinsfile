@@ -5,6 +5,10 @@ pipeline {
         nodejs 'NodeJS' // Reference to NodeJS installation
     }
 
+    environment {
+        TOMCAT_PATH = "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT"
+    }
+
     stages {
         stage('Clone Repository') {
             steps {
@@ -33,14 +37,12 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    echo 'Deploying to Tomcat...'
-                    def tomcatPath = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT'
-                    
+                    echo "Deploying to Tomcat at ${TOMCAT_PATH}..."
                     // Clean existing files in ROOT directory
-                    bat "del /Q ${tomcatPath}\\*"
-                    
+                    bat "del /Q ${TOMCAT_PATH}\\*"
+
                     // Copy new build files to Tomcat's ROOT directory
-                    bat "xcopy /S /I /Y build\\* ${tomcatPath}\\"
+                    bat "xcopy /S /I /Y build\\* ${TOMCAT_PATH}\\"
                 }
             }
         }
