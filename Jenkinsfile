@@ -35,11 +35,12 @@ pipeline {
                 script {
                     echo 'Deploying to Tomcat...'
                     def tomcatPath = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT'
-                    
-                    // Clear the Tomcat webapps ROOT directory
+
+                    // Clean up existing files in the ROOT directory
                     bat "del /Q ${tomcatPath}\\*"
-                    // Copy the built files to the Tomcat ROOT directory
-                    bat "xcopy /S /I /Y build\\* ${tomcatPath}"
+
+                    // Copy build files to Tomcat's ROOT directory
+                    bat "xcopy /S /I /Y build\\* ${tomcatPath}\\"
                 }
             }
         }
@@ -47,7 +48,7 @@ pipeline {
 
     post {
         success {
-            echo 'Deployed successfully!'
+            echo 'Deployed successfully to Tomcat!'
         }
         failure {
             echo 'Deployment failed.'
