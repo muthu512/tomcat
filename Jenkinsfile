@@ -8,12 +8,16 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git credentialsId: 'muthu512', url: 'https://github.com/muthu512/tomcat.git', branch: 'master'
+                script {
+                    echo 'Cloning repository...'
+                    git credentialsId: 'muthu512', url: 'https://github.com/muthu512/tomcat.git', branch: 'master'
+                }
             }
         }
         stage('Install Dependencies') {
             steps {
                 script {
+                    echo 'Installing dependencies...'
                     bat 'npm install'
                 }
             }
@@ -21,6 +25,7 @@ pipeline {
         stage('Build React App') {
             steps {
                 script {
+                    echo 'Building React app...'
                     bat 'npm run build'
                 }
             }
@@ -28,6 +33,7 @@ pipeline {
         stage('Deploy to Tomcat') {
             steps {
                 script {
+                    echo 'Deploying to Tomcat...'
                     def tomcatPath = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT'
                     
                     bat "del /Q ${tomcatPath}\\*"
