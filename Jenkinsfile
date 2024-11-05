@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        nodejs 'NodeJS' // Reference the NodeJS installation in Jenkins
+        nodejs 'NodeJS' // Reference to NodeJS installation
     }
 
     stages {
@@ -10,7 +10,7 @@ pipeline {
             steps {
                 script {
                     echo 'Cloning repository...'
-                    git credentialsId: 'muthu512', url: 'https://github.com/muthu512/tomcat.git', branch: 'master'
+                    git credentialsId: 'muthu512', url: 'https://github.com/muthu512/tomcat.git'
                 }
             }
         }
@@ -35,11 +35,11 @@ pipeline {
                 script {
                     echo 'Deploying to Tomcat...'
                     def tomcatPath = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\ROOT'
-
-                    // Clean up existing files in the ROOT directory
+                    
+                    // Clean existing files in ROOT directory
                     bat "del /Q ${tomcatPath}\\*"
-
-                    // Copy build files to Tomcat's ROOT directory
+                    
+                    // Copy new build files to Tomcat's ROOT directory
                     bat "xcopy /S /I /Y build\\* ${tomcatPath}\\"
                 }
             }
@@ -48,7 +48,7 @@ pipeline {
 
     post {
         success {
-            echo 'Deployed successfully to Tomcat!'
+            echo 'Deployment successful!'
         }
         failure {
             echo 'Deployment failed.'
